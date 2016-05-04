@@ -3,36 +3,58 @@
 (function(){
   angular
     .module("app", [
-      "ui.router"
+      "ui.router",
+      "ngResource"
     ])
     .config([
       "$stateProvider",
       RouterFunc
     ])
     .controller("MainCtlr", MainControllerFunc)
+    .controller("NewTodoCtlr", NewTodoControllerFunc)
+    .factory("TodoFactory", TodoFactoryFunc)
 
-  function RouterFunc($stateProvider) {
-
-    $stateProvider
-      .state("state1", {
-        url: "/argh",
-        templateUrl: "js/index.template.html",
-        controller: "MainCtlr",
-        controllerAs: "vm"
-      })
-      .state("state2", {
-        url: "/whoa",
-        template: "<h1>Whoa</h1>"
-      })
+  TodoFactoryFunc.$inject = ["$resource"]
+  function TodoFactoryFunc($resource) {
+    return $resource("http://localhost:3000/todos/:id.json", {})
   }
 
-  function MainControllerFunc() {
-    var vm = this;
-    vm.panda = "pizza is king"
+  function RouterFunc($stateProvider) {
+    $stateProvider
+      .state("todosIndex", {
+        url: "/todos",
+        templateUrl: "js/todos.template.html",
+        controller: "MainCtlr",
+        controllerAs: "vm"
+      }).state("newTodo", {
+        url: "/todos/new",
+        templateUrl: "js/todoForm.template.html",
+        controller: "NewTodoCtlr",
+        controllerAs: "vm"
+      }).state("todosShow", {
+        url: "/todos/:id",
+        templateUrl: "js/todoShow.template.html",
+        controller: "ShowTodoCtlr",
+        controllerAs: "vm"
+      })
+}
 
-    vm.sayHello = function() {
-      vm.panda = "pizza is life"
-      console.log("Hello Pizza");
+  MainControllerFunc.$inject = ["TodoFactory"]
+  function MainControllerFunc(TodoFactory) {
+    var vm = this;
+    vm.todos = TodoFactory.query();
+  }
+
+  NewTodoControllerFunc.$inject = ["$state", "TodoFactory"];
+  function NewTodoControllerFunc($state, TodoFactory) {
+    var vm = this;
+
+    vm.newTodo = new TodoFactory();
+
+    vm.create = function() {
+      vm.newTodo.$save().then(function(res) {
+        $state.go("todosShow({id: res.id})")
+      });
     }
   }
 })();
