@@ -47,12 +47,12 @@
 
   NewTodoControllerFunc.$inject = ["$state", "TodoFactory"];
   function NewTodoControllerFunc($state, TodoFactory) {
-    var newTodoVm = this;
+    var newVm = this;
 
-    newTodoVm.newTodo = new TodoFactory();
+    newVm.newTodo = new TodoFactory();
 
-    newTodoVm.create = function() {
-      newTodoVm.newTodo.$save().then(function(res) {
+    newVm.create = function() {
+      newVm.newTodo.$save().then(function(res) {
         $state.go("todosShow({id: res.id})")
       });
     }
